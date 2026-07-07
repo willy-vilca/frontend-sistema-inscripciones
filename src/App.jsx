@@ -2,11 +2,17 @@ import { useEffect, useState } from 'react'
 import { Link, Route, Routes } from 'react-router-dom'
 import { Activity, ShieldCheck, UserRoundPlus } from 'lucide-react'
 import { getApiStatus } from './services/api'
+import { AdminPaymentsPage } from './pages/admin/AdminPaymentsPage'
+import { AdminPlaceholderPage } from './pages/admin/AdminPlaceholderPage'
 
 function App() {
   return (
     <Routes>
       <Route path="/" element={<HomePage />} />
+      <Route path="/admin" element={<AdminPlaceholderPage />} />
+      <Route path="/admin/login" element={<AdminPlaceholderPage />} />
+      <Route path="/admin/pagos" element={<AdminPaymentsPage />} />
+      <Route path="/admin/postulantes" element={<AdminPlaceholderPage />} />
       <Route path="*" element={<HomePage />} />
     </Routes>
   )
@@ -55,7 +61,7 @@ function HomePage() {
             </div>
           </div>
           <Link
-            to="/admin/login"
+            to="/admin/pagos"
             className="rounded-md border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-red-700 hover:text-red-700"
           >
             Administrador
