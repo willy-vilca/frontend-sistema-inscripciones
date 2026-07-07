@@ -85,9 +85,10 @@ export function AdminPaymentsPage() {
       })
       refreshPayments()
     } catch (error) {
-      const message =
-        error.response?.data?.message ??
-        'No se pudo importar el archivo. Revisa que sea un Excel valido.'
+      const message = error.code === 'ECONNABORTED'
+        ? 'La importacion tardo demasiado. Recarga la tabla para verificar si el backend termino el proceso.'
+        : error.response?.data?.message ??
+          'No se pudo importar el archivo. Revisa que sea un Excel valido.'
 
       Swal.fire({
         icon: 'error',
