@@ -55,3 +55,19 @@ export async function registerApplication(payload, photo, documents) {
 
   return response.data
 }
+
+export async function downloadApplicantCard(downloadUrl, filename) {
+  const response = await api.get(downloadUrl, {
+    responseType: 'blob',
+    timeout: 180000,
+  })
+
+  const blobUrl = window.URL.createObjectURL(new Blob([response.data], { type: 'application/pdf' }))
+  const link = document.createElement('a')
+  link.href = blobUrl
+  link.setAttribute('download', filename)
+  document.body.appendChild(link)
+  link.click()
+  link.remove()
+  window.URL.revokeObjectURL(blobUrl)
+}

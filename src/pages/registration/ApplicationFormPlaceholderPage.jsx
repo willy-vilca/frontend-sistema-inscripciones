@@ -8,6 +8,7 @@ import { FormSection } from '../../components/form/FormSection'
 import { FilePicker } from '../../components/form/FilePicker'
 import { inputClass } from '../../utils/styles'
 import {
+  downloadApplicantCard,
   getAcademicAreas,
   getAcademicPrograms,
   getProfessionalSchools,
@@ -217,10 +218,11 @@ export function ApplicationFormPlaceholderPage() {
     setSubmitting(true)
     try {
       const result = await registerApplication(buildPayload(inicio, form), photo, documents)
+      await downloadApplicantCard(result.carneDownloadUrl, `carne-${result.codigoPostulante}.pdf`)
       await Swal.fire({
         icon: 'success',
         title: 'Inscripcion registrada',
-        html: `<p>${result.mensaje}</p><p><b>Codigo:</b> ${result.codigoPostulante}</p>`,
+        html: `<p>${result.mensaje}</p><p>Tu carne digital fue descargado correctamente.</p><p><b>Codigo:</b> ${result.codigoPostulante}</p>`,
       })
       sessionStorage.removeItem('inicioInscripcion')
       navigate('/inscripcion')
