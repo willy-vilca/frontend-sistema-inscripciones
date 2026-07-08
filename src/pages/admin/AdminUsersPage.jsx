@@ -292,7 +292,7 @@ function UserModal({ editingUser, form, setForm, saving, onSubmit, onClose }) {
                 className="mt-2 h-11 w-full rounded-md border border-slate-300 px-3 text-sm outline-none transition focus:border-red-700 focus:ring-2 focus:ring-red-100"
               >
                 <option value="ADMIN">ADMIN</option>
-                <option value="SUPER_ADMIN">SUPER_ADMIN</option>
+                <option value="COORDINADOR">COORDINADOR</option>
               </select>
             </label>
             <label className="flex items-center gap-3 pt-8 text-sm font-semibold text-slate-700">

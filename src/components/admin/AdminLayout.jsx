@@ -5,7 +5,7 @@ import { clearAdminSession, getStoredAdminSession } from '../../services/adminAu
 const navItems = [
   { to: '/admin/pagos', label: 'Pagos bancarios', icon: Banknote },
   { to: '/admin/postulantes', label: 'Postulantes', icon: UsersRound },
-  { to: '/admin/usuarios', label: 'Usuarios admin', icon: UserCog },
+  { to: '/admin/usuarios', label: 'Usuarios admin', icon: UserCog, adminOnly: true },
   { to: '/admin', label: 'Resumen', icon: LayoutDashboard },
 ]
 
@@ -29,7 +29,7 @@ export function AdminLayout({ title, description, children }) {
         </div>
 
         <nav className="space-y-2">
-          {navItems.map((item) => {
+          {navItems.filter((item) => !item.adminOnly || session?.user?.rol === 'ADMIN').map((item) => {
             const Icon = item.icon
             return (
               <NavLink

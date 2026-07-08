@@ -23,14 +23,14 @@ function App() {
       <Route path="/admin/pagos" element={<ProtectedAdmin><AdminPaymentsPage /></ProtectedAdmin>} />
       <Route path="/admin/postulantes" element={<ProtectedAdmin><AdminApplicantsPage /></ProtectedAdmin>} />
       <Route path="/admin/postulantes/:id" element={<ProtectedAdmin><AdminApplicantDetailPage /></ProtectedAdmin>} />
-      <Route path="/admin/usuarios" element={<ProtectedAdmin><AdminUsersPage /></ProtectedAdmin>} />
+      <Route path="/admin/usuarios" element={<ProtectedAdmin requiredRole="ADMIN"><AdminUsersPage /></ProtectedAdmin>} />
       <Route path="*" element={<HomePage />} />
     </Routes>
   )
 }
 
-function ProtectedAdmin({ children }) {
-  return <RequireAdminAuth>{children}</RequireAdminAuth>
+function ProtectedAdmin({ children, requiredRole }) {
+  return <RequireAdminAuth requiredRole={requiredRole}>{children}</RequireAdminAuth>
 }
 
 function HomePage() {

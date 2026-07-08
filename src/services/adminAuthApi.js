@@ -23,7 +23,12 @@ export function getStoredAdminSession() {
   if (!raw) return null
 
   try {
-    return JSON.parse(raw)
+    const session = JSON.parse(raw)
+    if (session?.user?.rol === 'SUPER_ADMIN') {
+      session.user.rol = 'ADMIN'
+      localStorage.setItem(SESSION_KEY, JSON.stringify(session))
+    }
+    return session
   } catch {
     clearAdminSession()
     return null
