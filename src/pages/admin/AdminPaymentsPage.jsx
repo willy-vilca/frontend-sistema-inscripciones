@@ -78,6 +78,7 @@ export function AdminPaymentsPage() {
             <p><b>Archivo:</b> ${result.archivo}</p>
             <p><b>Filas leidas:</b> ${result.filasLeidas}</p>
             <p><b>Importados:</b> ${result.pagosImportados}</p>
+            <p><b>Actualizados:</b> ${result.pagosActualizados ?? 0}</p>
             <p><b>Duplicados:</b> ${result.pagosDuplicados}</p>
             <p><b>Omitidos:</b> ${result.filasOmitidas}</p>
           </div>
