@@ -14,3 +14,44 @@ export async function validateRegistrationPayment(payload) {
   const response = await api.post('/public/inscripcion/validar-pago', payload)
   return response.data
 }
+
+export async function getAcademicAreas() {
+  const response = await api.get('/public/catalogos/areas')
+  return response.data
+}
+
+export async function getProfessionalSchools(areaId) {
+  const response = await api.get('/public/catalogos/escuelas', {
+    params: { areaId },
+  })
+  return response.data
+}
+
+export async function getAcademicPrograms(escuelaId) {
+  const response = await api.get('/public/catalogos/programas', {
+    params: { escuelaId },
+  })
+  return response.data
+}
+
+export async function registerApplication(payload, photo, documents) {
+  const formData = new FormData()
+  formData.append('datos', JSON.stringify(payload))
+  formData.append('foto', photo)
+
+  Object.entries(documents).forEach(([key, file]) => {
+    if (file) {
+      formData.append('documentos', file)
+      formData.append('documentoKeys', key)
+    }
+  })
+
+  const response = await api.post('/public/inscripcion/registrar', formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+    timeout: 180000,
+  })
+
+  return response.data
+}
