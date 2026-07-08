@@ -2,10 +2,13 @@ import { useEffect, useState } from 'react'
 import { Link, Route, Routes } from 'react-router-dom'
 import { Activity, ShieldCheck, UserRoundPlus } from 'lucide-react'
 import { getApiStatus } from './services/api'
+import { RequireAdminAuth } from './components/admin/RequireAdminAuth'
 import { AdminPaymentsPage } from './pages/admin/AdminPaymentsPage'
 import { AdminPlaceholderPage } from './pages/admin/AdminPlaceholderPage'
 import { AdminApplicantsPage } from './pages/admin/AdminApplicantsPage'
 import { AdminApplicantDetailPage } from './pages/admin/AdminApplicantDetailPage'
+import { AdminLoginPage } from './pages/admin/AdminLoginPage'
+import { AdminUsersPage } from './pages/admin/AdminUsersPage'
 import { RegistrationStartPage } from './pages/registration/RegistrationStartPage'
 import { ApplicationFormPlaceholderPage } from './pages/registration/ApplicationFormPlaceholderPage'
 
@@ -15,14 +18,19 @@ function App() {
       <Route path="/" element={<HomePage />} />
       <Route path="/inscripcion" element={<RegistrationStartPage />} />
       <Route path="/inscripcion/ficha" element={<ApplicationFormPlaceholderPage />} />
-      <Route path="/admin" element={<AdminPlaceholderPage />} />
-      <Route path="/admin/login" element={<AdminPlaceholderPage />} />
-      <Route path="/admin/pagos" element={<AdminPaymentsPage />} />
-      <Route path="/admin/postulantes" element={<AdminApplicantsPage />} />
-      <Route path="/admin/postulantes/:id" element={<AdminApplicantDetailPage />} />
+      <Route path="/admin/login" element={<AdminLoginPage />} />
+      <Route path="/admin" element={<ProtectedAdmin><AdminPlaceholderPage /></ProtectedAdmin>} />
+      <Route path="/admin/pagos" element={<ProtectedAdmin><AdminPaymentsPage /></ProtectedAdmin>} />
+      <Route path="/admin/postulantes" element={<ProtectedAdmin><AdminApplicantsPage /></ProtectedAdmin>} />
+      <Route path="/admin/postulantes/:id" element={<ProtectedAdmin><AdminApplicantDetailPage /></ProtectedAdmin>} />
+      <Route path="/admin/usuarios" element={<ProtectedAdmin><AdminUsersPage /></ProtectedAdmin>} />
       <Route path="*" element={<HomePage />} />
     </Routes>
   )
+}
+
+function ProtectedAdmin({ children }) {
+  return <RequireAdminAuth>{children}</RequireAdminAuth>
 }
 
 function HomePage() {
@@ -68,7 +76,7 @@ function HomePage() {
             </div>
           </div>
           <Link
-            to="/admin/pagos"
+            to="/admin/login"
             className="rounded-md border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-red-700 hover:text-red-700"
           >
             Administrador

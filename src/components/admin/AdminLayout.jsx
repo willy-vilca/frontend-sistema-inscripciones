@@ -1,13 +1,23 @@
-import { Link, NavLink } from 'react-router-dom'
-import { ArrowLeft, Banknote, LayoutDashboard, UsersRound } from 'lucide-react'
+import { Link, NavLink, useNavigate } from 'react-router-dom'
+import { ArrowLeft, Banknote, LayoutDashboard, LogOut, UserCog, UsersRound } from 'lucide-react'
+import { clearAdminSession, getStoredAdminSession } from '../../services/adminAuthApi'
 
 const navItems = [
   { to: '/admin/pagos', label: 'Pagos bancarios', icon: Banknote },
   { to: '/admin/postulantes', label: 'Postulantes', icon: UsersRound },
+  { to: '/admin/usuarios', label: 'Usuarios admin', icon: UserCog },
   { to: '/admin', label: 'Resumen', icon: LayoutDashboard },
 ]
 
 export function AdminLayout({ title, description, children }) {
+  const navigate = useNavigate()
+  const session = getStoredAdminSession()
+
+  const logout = () => {
+    clearAdminSession()
+    navigate('/admin/login', { replace: true })
+  }
+
   return (
     <main className="min-h-screen bg-slate-100 text-slate-900">
       <aside className="fixed inset-y-0 left-0 hidden w-72 border-r border-slate-200 bg-slate-950 p-5 text-white lg:block">
@@ -39,6 +49,21 @@ export function AdminLayout({ title, description, children }) {
             )
           })}
         </nav>
+
+        <div className="absolute bottom-20 left-5 right-5 rounded-md bg-slate-900 px-3 py-3">
+          <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Sesion</p>
+          <p className="mt-1 truncate text-sm font-bold text-white">
+            {session?.user?.nombreCompleto ?? 'Administrador'}
+          </p>
+          <button
+            type="button"
+            onClick={logout}
+            className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-md border border-slate-700 px-3 py-2 text-sm font-semibold text-slate-300 transition hover:border-red-600 hover:text-white"
+          >
+            <LogOut size={16} aria-hidden="true" />
+            Cerrar sesion
+          </button>
+        </div>
 
         <Link
           to="/"
