@@ -4,6 +4,8 @@ import { Activity, ShieldCheck, UserRoundPlus } from 'lucide-react'
 import { getApiStatus } from './services/api'
 import { AdminPaymentsPage } from './pages/admin/AdminPaymentsPage'
 import { AdminPlaceholderPage } from './pages/admin/AdminPlaceholderPage'
+import { AdminApplicantsPage } from './pages/admin/AdminApplicantsPage'
+import { AdminApplicantDetailPage } from './pages/admin/AdminApplicantDetailPage'
 import { RegistrationStartPage } from './pages/registration/RegistrationStartPage'
 import { ApplicationFormPlaceholderPage } from './pages/registration/ApplicationFormPlaceholderPage'
 
@@ -16,7 +18,8 @@ function App() {
       <Route path="/admin" element={<AdminPlaceholderPage />} />
       <Route path="/admin/login" element={<AdminPlaceholderPage />} />
       <Route path="/admin/pagos" element={<AdminPaymentsPage />} />
-      <Route path="/admin/postulantes" element={<AdminPlaceholderPage />} />
+      <Route path="/admin/postulantes" element={<AdminApplicantsPage />} />
+      <Route path="/admin/postulantes/:id" element={<AdminApplicantDetailPage />} />
       <Route path="*" element={<HomePage />} />
     </Routes>
   )
