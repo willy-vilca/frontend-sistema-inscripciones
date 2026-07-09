@@ -1,10 +1,11 @@
 import { Link, NavLink, useNavigate } from 'react-router-dom'
-import { ArrowLeft, Banknote, LayoutDashboard, LogOut, UserCog, UsersRound } from 'lucide-react'
+import { ArrowLeft, Banknote, GraduationCap, LayoutDashboard, LogOut, UserCog, UsersRound } from 'lucide-react'
 import { clearAdminSession, getStoredAdminSession } from '../../services/adminAuthApi'
 
 const navItems = [
   { to: '/admin/pagos', label: 'Pagos bancarios', icon: Banknote },
   { to: '/admin/postulantes', label: 'Postulantes', icon: UsersRound },
+  { to: '/admin/academico', label: 'Academico', icon: GraduationCap },
   { to: '/admin/usuarios', label: 'Usuarios admin', icon: UserCog, adminOnly: true },
   { to: '/admin', label: 'Resumen', icon: LayoutDashboard },
 ]

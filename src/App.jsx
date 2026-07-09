@@ -9,6 +9,7 @@ import { AdminApplicantsPage } from './pages/admin/AdminApplicantsPage'
 import { AdminApplicantDetailPage } from './pages/admin/AdminApplicantDetailPage'
 import { AdminLoginPage } from './pages/admin/AdminLoginPage'
 import { AdminUsersPage } from './pages/admin/AdminUsersPage'
+import { AdminAcademicPage } from './pages/admin/AdminAcademicPage'
 import { RegistrationStartPage } from './pages/registration/RegistrationStartPage'
 import { ApplicationFormPlaceholderPage } from './pages/registration/ApplicationFormPlaceholderPage'
 
@@ -23,6 +24,7 @@ function App() {
       <Route path="/admin/pagos" element={<ProtectedAdmin><AdminPaymentsPage /></ProtectedAdmin>} />
       <Route path="/admin/postulantes" element={<ProtectedAdmin><AdminApplicantsPage /></ProtectedAdmin>} />
       <Route path="/admin/postulantes/:id" element={<ProtectedAdmin><AdminApplicantDetailPage /></ProtectedAdmin>} />
+      <Route path="/admin/academico" element={<ProtectedAdmin><AdminAcademicPage /></ProtectedAdmin>} />
       <Route path="/admin/usuarios" element={<ProtectedAdmin requiredRole="ADMIN"><AdminUsersPage /></ProtectedAdmin>} />
       <Route path="*" element={<HomePage />} />
     </Routes>
