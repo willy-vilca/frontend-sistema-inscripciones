@@ -1,7 +1,14 @@
-import { useEffect, useState } from 'react'
 import { Link, Route, Routes } from 'react-router-dom'
-import { Activity, ShieldCheck, UserRoundPlus } from 'lucide-react'
-import { getApiStatus } from './services/api'
+import {
+  ArrowRight,
+  ClipboardCheck,
+  CreditCard,
+  FileText,
+  IdCard,
+  LogIn,
+  ShieldCheck,
+  UserRoundPlus,
+} from 'lucide-react'
 import { RequireAdminAuth } from './components/admin/RequireAdminAuth'
 import { AdminPaymentsPage } from './pages/admin/AdminPaymentsPage'
 import { AdminPlaceholderPage } from './pages/admin/AdminPlaceholderPage'
@@ -12,6 +19,7 @@ import { AdminUsersPage } from './pages/admin/AdminUsersPage'
 import { AdminAcademicPage } from './pages/admin/AdminAcademicPage'
 import { RegistrationStartPage } from './pages/registration/RegistrationStartPage'
 import { ApplicationFormPlaceholderPage } from './pages/registration/ApplicationFormPlaceholderPage'
+import heroImage from './assets/hero.png'
 
 function App() {
   return (
@@ -36,33 +44,27 @@ function ProtectedAdmin({ children, requiredRole }) {
 }
 
 function HomePage() {
-  const [apiState, setApiState] = useState({
-    loading: true,
-    online: false,
-    message: 'Verificando conexion con el backend...',
-  })
-
-  useEffect(() => {
-    getApiStatus()
-      .then((data) => {
-        setApiState({
-          loading: false,
-          online: data.status === 'online',
-          message: data.message,
-        })
-      })
-      .catch(() => {
-        setApiState({
-          loading: false,
-          online: false,
-          message: 'No se pudo conectar con la API. Revisa que Spring Boot este iniciado.',
-        })
-      })
-  }, [])
+  const applicationSteps = [
+    {
+      icon: CreditCard,
+      title: 'Valida tu pago',
+      description: 'Ingresa el numero de movimiento bancario para confirmar el pago de admision.',
+    },
+    {
+      icon: FileText,
+      title: 'Completa tu ficha',
+      description: 'Registra tus datos personales, academicos y adjunta los documentos solicitados.',
+    },
+    {
+      icon: IdCard,
+      title: 'Obten tu carne',
+      description: 'Al finalizar, descarga automaticamente tu carne de postulante en PDF.',
+    },
+  ]
 
   return (
     <main className="min-h-screen bg-slate-50 text-slate-900">
-      <header className="border-b border-slate-200 bg-white">
+      <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/95 backdrop-blur">
         <div className="mx-auto flex w-full max-w-6xl items-center justify-between px-5 py-4">
           <div className="flex items-center gap-3">
             <div className="flex h-11 w-11 items-center justify-center rounded-md bg-red-700 text-white">
@@ -79,97 +81,145 @@ function HomePage() {
           </div>
           <Link
             to="/admin/login"
-            className="rounded-md border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-red-700 hover:text-red-700"
+            className="inline-flex items-center gap-2 rounded-md border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-red-700 hover:text-red-700"
           >
+            <LogIn size={17} aria-hidden="true" />
             Administrador
           </Link>
         </div>
       </header>
 
-      <section className="mx-auto grid w-full max-w-6xl gap-8 px-5 py-12 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
-        <div className="text-left">
-          <p className="mb-3 text-sm font-semibold uppercase tracking-wide text-red-700">
-            Proceso de admision 2026-I
-          </p>
-          <h2 className="max-w-3xl text-4xl font-bold leading-tight text-slate-950 md:text-5xl">
-            Plataforma local para registrar postulantes y validar pagos bancarios.
-          </h2>
-          <p className="mt-5 max-w-2xl text-base leading-7 text-slate-600">
-            Esta es la base tecnica inicial del proyecto. Desde aqui construiremos
-            el flujo completo de inscripcion, carga de anexos, generacion del carne
-            PDF y administracion de postulantes.
-          </p>
+      <section className="relative overflow-hidden bg-slate-950 text-white">
+        <img
+          src={heroImage}
+          alt=""
+          className="absolute right-[-2rem] top-20 hidden h-[34rem] w-[34rem] object-contain opacity-20 lg:block"
+          aria-hidden="true"
+        />
+        <div className="absolute inset-0 bg-slate-950/82" />
 
-          <div className="mt-8 flex flex-wrap gap-3">
+        <div className="relative mx-auto grid min-h-[calc(100vh-77px)] w-full max-w-6xl content-center gap-10 px-5 py-16 lg:grid-cols-[1fr_360px] lg:items-center">
+          <div className="max-w-3xl text-left">
+            <p className="mb-4 text-sm font-semibold uppercase text-red-200">
+              Proceso de admision 2026-I
+            </p>
+            <h2 className="text-4xl font-bold leading-tight md:text-6xl">
+              Sistema de Inscripciones de Admision
+            </h2>
+            <p className="mt-6 max-w-2xl text-base leading-8 text-slate-200 md:text-lg">
+              Registra tu postulacion en linea, valida tu pago bancario,
+              adjunta tus documentos y descarga tu carne digital al finalizar
+              el proceso.
+            </p>
+
+            <div className="mt-9 flex flex-wrap gap-3">
+              <Link
+                to="/inscripcion"
+                className="inline-flex items-center gap-2 rounded-md bg-red-700 px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-red-800"
+              >
+                <UserRoundPlus size={18} aria-hidden="true" />
+                Iniciar inscripcion
+                <ArrowRight size={17} aria-hidden="true" />
+              </Link>
+              <Link
+                to="/admin/login"
+                className="inline-flex items-center gap-2 rounded-md border border-white/35 px-5 py-3 text-sm font-semibold text-white transition hover:border-white hover:bg-white/10"
+              >
+                <ShieldCheck size={18} aria-hidden="true" />
+                Acceso administrador
+              </Link>
+            </div>
+          </div>
+
+          <aside className="hidden text-left lg:block">
+            <div className="border-l border-white/20 pl-8">
+              <p className="text-sm font-semibold uppercase text-red-200">
+                Atencion al postulante
+              </p>
+              <h3 className="mt-2 text-2xl font-bold">
+                Inscripcion guiada y carne digital
+              </h3>
+              <div className="mt-6 space-y-4 text-sm leading-6 text-slate-200">
+                <p>Validacion del pago bancario antes de abrir la ficha.</p>
+                <p>Registro completo de datos personales y academicos.</p>
+                <p>Emision automatica del carne de postulante en PDF.</p>
+              </div>
+            </div>
+          </aside>
+        </div>
+      </section>
+
+      <section className="border-b border-slate-200 bg-white">
+        <div className="mx-auto w-full max-w-6xl px-5 py-12">
+          <div className="mb-8 flex flex-col justify-between gap-3 text-left md:flex-row md:items-end">
+            <div>
+              <p className="text-sm font-semibold uppercase text-red-700">
+                Flujo de inscripcion
+              </p>
+              <h2 className="mt-2 text-3xl font-bold text-slate-950">
+                Completa tu registro en tres pasos
+              </h2>
+            </div>
             <Link
               to="/inscripcion"
-              className="inline-flex items-center gap-2 rounded-md bg-red-700 px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-red-800"
+              className="inline-flex w-fit items-center gap-2 rounded-md border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-red-700 hover:text-red-700"
             >
-              <UserRoundPlus size={18} aria-hidden="true" />
-              Iniciar inscripcion
+              Empezar ahora
+              <ArrowRight size={16} aria-hidden="true" />
             </Link>
-            <a
-              href="http://localhost:8080/api/status"
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex items-center gap-2 rounded-md border border-slate-300 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:border-slate-500"
-            >
-              <Activity size={18} aria-hidden="true" />
-              Ver API
-            </a>
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-3">
+            {applicationSteps.map((step) => {
+              const StepIcon = step.icon
+
+              return (
+                <article
+                  key={step.title}
+                  className="rounded-md border border-slate-200 bg-slate-50 p-5 text-left"
+                >
+                  <div className="flex h-11 w-11 items-center justify-center rounded-md bg-red-700 text-white">
+                    <StepIcon size={21} aria-hidden="true" />
+                  </div>
+                  <h3 className="mt-5 text-lg font-bold text-slate-950">
+                    {step.title}
+                  </h3>
+                  <p className="mt-2 text-sm leading-6 text-slate-600">
+                    {step.description}
+                  </p>
+                </article>
+              )
+            })}
           </div>
         </div>
+      </section>
 
-        <div className="rounded-md border border-slate-200 bg-white p-6 text-left shadow-sm">
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <p className="text-sm font-semibold text-slate-500">Estado del sistema</p>
-              <h3 className="mt-2 text-2xl font-bold text-slate-950">
-                Conexion inicial
-              </h3>
+      <section className="bg-slate-50">
+        <div className="mx-auto flex w-full max-w-6xl flex-col gap-4 px-5 py-10 text-left md:flex-row md:items-center md:justify-between">
+          <div className="flex items-start gap-4">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-md bg-slate-900 text-white">
+              <ClipboardCheck size={22} aria-hidden="true" />
             </div>
-            <span
-              className={`rounded-full px-3 py-1 text-xs font-bold ${
-                apiState.online
-                  ? 'bg-emerald-100 text-emerald-700'
-                  : apiState.loading
-                    ? 'bg-amber-100 text-amber-700'
-                    : 'bg-red-100 text-red-700'
-              }`}
-            >
-              {apiState.online ? 'Online' : apiState.loading ? 'Verificando' : 'Sin conexion'}
-            </span>
+            <div>
+              <h2 className="text-xl font-bold text-slate-950">
+                Gestion administrativa del proceso
+              </h2>
+              <p className="mt-1 max-w-2xl text-sm leading-6 text-slate-600">
+                Los administradores y coordinadores pueden revisar postulantes,
+                pagos, procesos academicos y reportes de inscripcion desde su panel.
+              </p>
+            </div>
           </div>
-
-          <div className="mt-6 space-y-4">
-            <StatusRow label="Frontend" value="React + Vite + TailwindCSS" ok />
-            <StatusRow label="Backend" value="Spring Boot API REST" ok={apiState.online} />
-            <StatusRow label="Base de datos" value="PostgreSQL: sistema_inscripciones" ok={apiState.online} />
-          </div>
-
-          <p className="mt-6 rounded-md bg-slate-100 px-4 py-3 text-sm text-slate-700">
-            {apiState.message}
-          </p>
+          <Link
+            to="/admin/login"
+            className="inline-flex w-fit items-center gap-2 rounded-md bg-slate-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800"
+          >
+            Entrar al panel
+            <ArrowRight size={16} aria-hidden="true" />
+          </Link>
         </div>
       </section>
     </main>
-  )
-}
-
-function StatusRow({ label, value, ok }) {
-  return (
-    <div className="flex items-center justify-between gap-4 border-b border-slate-100 pb-3 last:border-b-0 last:pb-0">
-      <div>
-        <p className="text-sm font-semibold text-slate-500">{label}</p>
-        <p className="text-sm text-slate-900">{value}</p>
-      </div>
-      <span
-        className={`h-2.5 w-2.5 rounded-full ${
-          ok ? 'bg-emerald-500' : 'bg-slate-300'
-        }`}
-        aria-label={ok ? 'Disponible' : 'Pendiente'}
-      />
-    </div>
   )
 }
 
