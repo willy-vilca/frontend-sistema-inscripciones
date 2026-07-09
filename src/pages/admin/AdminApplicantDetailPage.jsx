@@ -4,7 +4,12 @@ import { format } from 'date-fns'
 import Swal from 'sweetalert2'
 import { ArrowLeft, Download, IdCard } from 'lucide-react'
 import { AdminLayout } from '../../components/admin/AdminLayout'
-import { buildFileUrl, getApplicantDetail } from '../../services/applicantsApi'
+import {
+  buildFileUrl,
+  downloadAdminFile,
+  getAdminFileBlob,
+  getApplicantDetail,
+} from '../../services/applicantsApi'
 
 function valueOrDash(value) {
   if (value === null || value === undefined || value === '') return '-'
@@ -40,6 +45,7 @@ export function AdminApplicantDetailPage() {
   const { id } = useParams()
   const [detail, setDetail] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [photoObjectUrl, setPhotoObjectUrl] = useState({ source: null, url: null })
 
   useEffect(() => {
     let active = true
@@ -65,6 +71,53 @@ export function AdminApplicantDetailPage() {
     }
   }, [id])
 
+  useEffect(() => {
+    let active = true
+    let objectUrl = null
+
+    if (!detail?.fotoUrl) {
+      return () => {
+        active = false
+      }
+    }
+
+    getAdminFileBlob(detail.fotoUrl)
+      .then((blob) => {
+        objectUrl = window.URL.createObjectURL(blob)
+        if (active) {
+          setPhotoObjectUrl({ source: detail.fotoUrl, url: objectUrl })
+        } else {
+          window.URL.revokeObjectURL(objectUrl)
+        }
+      })
+      .catch(() => {
+        if (!active) return
+        setPhotoObjectUrl({ source: detail.fotoUrl, url: null })
+      })
+
+    return () => {
+      active = false
+      if (objectUrl) {
+        window.URL.revokeObjectURL(objectUrl)
+      }
+    }
+  }, [detail?.fotoUrl])
+
+  async function handleDocumentDownload(document) {
+    try {
+      await downloadAdminFile(document.downloadUrl, document.nombreOriginal)
+    } catch {
+      Swal.fire({
+        icon: 'error',
+        title: 'No se pudo descargar el documento',
+        text: 'Verifica que tu sesion siga activa y vuelve a intentarlo.',
+      })
+    }
+  }
+
+  const currentPhotoUrl =
+    photoObjectUrl.source === detail?.fotoUrl ? photoObjectUrl.url : null
+
   return (
     <AdminLayout
       title="Informacion del postulante"
@@ -89,7 +142,7 @@ export function AdminApplicantDetailPage() {
           </section>
         ) : (
           <>
-            <HeaderPanel detail={detail} />
+            <HeaderPanel detail={detail} photoObjectUrl={currentPhotoUrl} />
 
             <InfoSection title="Datos personales">
               <InfoGrid
@@ -175,7 +228,7 @@ export function AdminApplicantDetailPage() {
             </InfoSection>
 
             <PaymentPanel payment={detail.pago} />
-            <DocumentsPanel documents={detail.documentos} />
+            <DocumentsPanel documents={detail.documentos} onDownload={handleDocumentDownload} />
           </>
         )}
       </div>
@@ -183,7 +236,7 @@ export function AdminApplicantDetailPage() {
   )
 }
 
-function HeaderPanel({ detail }) {
+function HeaderPanel({ detail, photoObjectUrl }) {
   const fullName = [
     detail.datosPersonales.nombres,
     detail.datosPersonales.apellidoPaterno,
@@ -194,11 +247,15 @@ function HeaderPanel({ detail }) {
     <section className="rounded-md border border-slate-200 bg-white p-5 shadow-sm">
       <div className="grid gap-5 md:grid-cols-[150px_1fr_auto] md:items-center">
         <div className="flex h-36 w-36 items-center justify-center overflow-hidden rounded-md border border-slate-200 bg-slate-100">
-          <img
-            src={buildFileUrl(detail.fotoUrl)}
-            alt="Foto del postulante"
-            className="h-full w-full object-cover"
-          />
+          {photoObjectUrl ? (
+            <img
+              src={photoObjectUrl}
+              alt="Foto del postulante"
+              className="h-full w-full object-cover"
+            />
+          ) : (
+            <IdCard size={44} className="text-slate-400" aria-hidden="true" />
+          )}
         </div>
         <div>
           <p className="text-xs font-semibold uppercase tracking-wide text-red-700">
@@ -276,7 +333,7 @@ function PaymentPanel({ payment }) {
   )
 }
 
-function DocumentsPanel({ documents }) {
+function DocumentsPanel({ documents, onDownload }) {
   return (
     <section className="rounded-md border border-slate-200 bg-white shadow-sm">
       <div className="border-b border-slate-200 px-5 py-4">
@@ -315,13 +372,14 @@ function DocumentsPanel({ documents }) {
                   <td className="px-5 py-4 text-slate-600">{formatBytes(document.tamanioBytes)}</td>
                   <td className="px-5 py-4 text-slate-600">{document.estado}</td>
                   <td className="px-5 py-4">
-                    <a
-                      href={buildFileUrl(document.downloadUrl)}
+                    <button
+                      type="button"
+                      onClick={() => onDownload(document)}
                       className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-slate-300 text-slate-700 transition hover:border-red-700 hover:text-red-700"
                       title="Descargar documento"
                     >
                       <Download size={17} aria-hidden="true" />
-                    </a>
+                    </button>
                   </td>
                 </tr>
               ))

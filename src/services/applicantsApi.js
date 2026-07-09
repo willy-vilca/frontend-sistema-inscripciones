@@ -17,6 +17,28 @@ export async function getApplicantDetail(id) {
   return response.data
 }
 
+export async function getAdminFileBlob(path) {
+  const response = await api.get(path, {
+    responseType: 'blob',
+    timeout: 180000,
+  })
+
+  return response.data
+}
+
+export async function downloadAdminFile(path, filename) {
+  const blob = await getAdminFileBlob(path)
+  const blobUrl = window.URL.createObjectURL(blob)
+  const link = document.createElement('a')
+
+  link.href = blobUrl
+  link.setAttribute('download', filename || 'documento')
+  document.body.appendChild(link)
+  link.click()
+  link.remove()
+  window.URL.revokeObjectURL(blobUrl)
+}
+
 export function buildFileUrl(path) {
   if (!path) return '#'
   return `${api.defaults.baseURL}${path}`
