@@ -3,11 +3,11 @@ import { ArrowLeft, Banknote, GraduationCap, LayoutDashboard, LogOut, UserCog, U
 import { clearAdminSession, getStoredAdminSession } from '../../services/adminAuthApi'
 
 const navItems = [
+  { to: '/admin', label: 'Resumen', icon: LayoutDashboard, end: true },
   { to: '/admin/pagos', label: 'Pagos bancarios', icon: Banknote },
   { to: '/admin/postulantes', label: 'Postulantes', icon: UsersRound },
   { to: '/admin/academico', label: 'Academico', icon: GraduationCap },
   { to: '/admin/usuarios', label: 'Usuarios admin', icon: UserCog, adminOnly: true },
-  { to: '/admin', label: 'Resumen', icon: LayoutDashboard },
 ]
 
 export function AdminLayout({ title, description, children }) {
@@ -36,6 +36,7 @@ export function AdminLayout({ title, description, children }) {
               <NavLink
                 key={item.to}
                 to={item.to}
+                end={item.end}
                 className={({ isActive }) =>
                   `flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-semibold transition ${
                     isActive

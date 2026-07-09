@@ -11,7 +11,7 @@ import {
 } from 'lucide-react'
 import { RequireAdminAuth } from './components/admin/RequireAdminAuth'
 import { AdminPaymentsPage } from './pages/admin/AdminPaymentsPage'
-import { AdminPlaceholderPage } from './pages/admin/AdminPlaceholderPage'
+import { AdminDashboardPage } from './pages/admin/AdminDashboardPage'
 import { AdminApplicantsPage } from './pages/admin/AdminApplicantsPage'
 import { AdminApplicantDetailPage } from './pages/admin/AdminApplicantDetailPage'
 import { AdminLoginPage } from './pages/admin/AdminLoginPage'
@@ -28,7 +28,7 @@ function App() {
       <Route path="/inscripcion" element={<RegistrationStartPage />} />
       <Route path="/inscripcion/ficha" element={<ApplicationFormPlaceholderPage />} />
       <Route path="/admin/login" element={<AdminLoginPage />} />
-      <Route path="/admin" element={<ProtectedAdmin><AdminPlaceholderPage /></ProtectedAdmin>} />
+      <Route path="/admin" element={<ProtectedAdmin><AdminDashboardPage /></ProtectedAdmin>} />
       <Route path="/admin/pagos" element={<ProtectedAdmin><AdminPaymentsPage /></ProtectedAdmin>} />
       <Route path="/admin/postulantes" element={<ProtectedAdmin><AdminApplicantsPage /></ProtectedAdmin>} />
       <Route path="/admin/postulantes/:id" element={<ProtectedAdmin><AdminApplicantDetailPage /></ProtectedAdmin>} />

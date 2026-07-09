@@ -16,7 +16,7 @@ export function AdminLoginPage() {
     try {
       const session = await loginAdmin(form)
       saveAdminSession(session)
-      navigate(location.state?.from ?? '/admin/postulantes', { replace: true })
+      navigate(location.state?.from ?? '/admin', { replace: true })
     } catch (error) {
       Swal.fire({
         icon: 'error',

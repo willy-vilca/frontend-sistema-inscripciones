@@ -10,7 +10,7 @@ export function RequireAdminAuth({ children, requiredRole }) {
 
   const session = getStoredAdminSession()
   if (requiredRole && session?.user?.rol !== requiredRole) {
-    return <Navigate to="/admin/postulantes" replace />
+    return <Navigate to="/admin" replace />
   }
 
   return children
