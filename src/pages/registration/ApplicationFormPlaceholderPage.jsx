@@ -15,13 +15,121 @@ import {
   registerApplication,
 } from '../../services/registrationApi'
 
-const DOCUMENT_REQUIREMENTS = [
-  ['dni', 'Documento Nacional de Identidad - Actualizado', true],
-  ['certificado', 'Certificado de Estudios Secundarios o Constancia de Logros', true],
-  ['compromiso', 'Compromiso de entregar certificado de estudios en caso de ingresar', false],
-  ['antecedentes', 'Declaracion Jurada de no tener antecedentes penales', true],
-  ['veracidad', 'Declaracion Jurada de veracidad de la documentacion', true],
-]
+const commonDocuments = {
+  dni: {
+    key: 'dni',
+    label: 'Documento Nacional de Identidad - Actualizado',
+    required: true,
+  },
+  documentoIdentidadGeneral: {
+    key: 'documento_identidad',
+    label: 'Documento Nacional de Identidad, Carnet de Extranjeria o Pasaporte',
+    required: true,
+  },
+  certificadoOrdinario: {
+    key: 'certificado_estudios',
+    label: 'Certificado de Estudios Secundarios o Constancia de Logros de aprendizaje, con las calificaciones aprobatorias, o Constancia de estar cursando 5to ano de educacion secundaria.',
+    required: true,
+  },
+  certificadoCompleto: {
+    key: 'certificado_estudios_completo',
+    label: 'Certificado de estudios del 1ro al 5to ano de secundaria o constancia de logros de aprendizaje con las calificaciones aprobatorias, expedido por el director de la Institucion Educativa',
+    required: true,
+  },
+  compromisoCertificado: {
+    key: 'compromiso_certificado',
+    label: 'Compromiso de entregar certificado de estudios en caso de ingresar (Solo para estudiantes de 5to ano de educacion secundaria)',
+    required: false,
+  },
+  antecedentes: {
+    key: 'declaracion_antecedentes',
+    label: 'Declaracion Jurada de no tener antecedentes penales',
+    required: true,
+  },
+  veracidad: {
+    key: 'declaracion_veracidad',
+    label: 'Declaracion Jurada de veracidad de la documentacion',
+    required: true,
+  },
+}
+
+const modalityDocumentRequirements = {
+  1: [
+    commonDocuments.dni,
+    commonDocuments.certificadoOrdinario,
+    commonDocuments.compromisoCertificado,
+    commonDocuments.antecedentes,
+    commonDocuments.veracidad,
+  ],
+  3: [
+    commonDocuments.dni,
+    commonDocuments.certificadoCompleto,
+    {
+      key: 'victima_terrorismo',
+      label: 'Copia fedateada de la Resolucion o Certificado que acredite fehacientemente su condicion de victima de terrorismo, expedida por el Consejo Regional de Calificacion',
+      required: true,
+    },
+    commonDocuments.antecedentes,
+    commonDocuments.veracidad,
+  ],
+  4: [
+    commonDocuments.documentoIdentidadGeneral,
+    {
+      key: 'titulo_profesional',
+      label: 'Titulo Profesional universitario o de Instituciones con rango universitario reconocido por ley, o copia legalizada del grado academico o titulo profesional revalidado por una universidad peruana (solo extranjero)',
+      required: true,
+    },
+    commonDocuments.antecedentes,
+    commonDocuments.veracidad,
+  ],
+  5: [
+    commonDocuments.dni,
+    commonDocuments.certificadoCompleto,
+    {
+      key: 'certificado_discapacidad',
+      label: 'Certificado de discapacidad emitido por los hospitales de los Ministerios de Salud, de Defensa y del Interior, y el Seguro Social de Salud (EsSalud) original o legalizado',
+      required: true,
+    },
+    commonDocuments.antecedentes,
+    commonDocuments.veracidad,
+  ],
+  6: [
+    commonDocuments.dni,
+    commonDocuments.certificadoCompleto,
+    {
+      key: 'carta_presentacion_ipd',
+      label: 'Carta de presentacion del presidente Instituto Peruano del Deporte (IPD) que certifique al postulante como deportista destacado, con una antiguedad no mayor a un (01) ano',
+      required: true,
+    },
+    {
+      key: 'constancia_no_sancion_deportiva',
+      label: 'Constancia expedida por el IPD o la federacion deportiva nacional que acredite no haber sido sancionado por falta grave o actividades antideportivas',
+      required: true,
+    },
+    {
+      key: 'compromiso_deportivo',
+      label: 'Compromiso notarial de representar a la universidad en todas las competencias deportivas de su especialidad durante su permanencia en la institucion',
+      required: true,
+    },
+    commonDocuments.antecedentes,
+    commonDocuments.veracidad,
+  ],
+  7: [
+    commonDocuments.dni,
+    {
+      key: 'certificado_estudios_primero_quinto',
+      label: 'Certificado de estudios del 1ro al 5to ano de secundaria',
+      required: true,
+    },
+    {
+      key: 'constancia_primeros_puestos',
+      label: 'Constancia de haber ocupado uno de los dos (2) primeros puestos en el orden de merito en educacion basica regular o educacion basica alternativa (La validez de la constancia es por dos anos posteriores al egreso)',
+      required: true,
+    },
+    commonDocuments.antecedentes,
+    commonDocuments.veracidad,
+  ],
+}
 
 const initialForm = {
   nombres: '',
@@ -86,6 +194,11 @@ export function ApplicationFormPlaceholderPage() {
   const [schools, setSchools] = useState([])
   const [programs, setPrograms] = useState([])
   const [submitting, setSubmitting] = useState(false)
+
+  const documentRequirements = useMemo(
+    () => getDocumentRequirements(inicio?.modalidadAdmision),
+    [inicio?.modalidadAdmision],
+  )
 
   useEffect(() => {
     if (!inicio) {
@@ -197,9 +310,9 @@ export function ApplicationFormPlaceholderPage() {
       return false
     }
 
-    const missingDocument = DOCUMENT_REQUIREMENTS.find(([key, , required]) => required && !documents[key])
+    const missingDocument = documentRequirements.find((document) => document.required && !documents[document.key])
     if (missingDocument) {
-      Swal.fire({ icon: 'warning', title: 'Documento obligatorio', text: `Adjunta: ${missingDocument[1]}.` })
+      Swal.fire({ icon: 'warning', title: 'Documento obligatorio', text: `Adjunta: ${missingDocument.label}.` })
       return false
     }
 
@@ -217,7 +330,11 @@ export function ApplicationFormPlaceholderPage() {
 
     setSubmitting(true)
     try {
-      const result = await registerApplication(buildPayload(inicio, form), photo, documents)
+      const result = await registerApplication(
+        buildPayload(inicio, form, documentRequirements),
+        photo,
+        pickRequirementFiles(documents, documentRequirements),
+      )
       await downloadApplicantCard(result.carneDownloadUrl, `carne-${result.codigoPostulante}.pdf`)
       await Swal.fire({
         icon: 'success',
@@ -436,8 +553,15 @@ export function ApplicationFormPlaceholderPage() {
 
           <FormSection title="Lista de requisitos anexos">
             <div className="grid gap-6 md:grid-cols-2">
-              {DOCUMENT_REQUIREMENTS.map(([key, label, required]) => (
-                <FilePicker key={key} label={label} accept="application/pdf" file={documents[key]} onChange={(file) => updateDocument(key, file)} required={required} />
+              {documentRequirements.map((document) => (
+                <FilePicker
+                  key={document.key}
+                  label={document.label}
+                  accept="application/pdf"
+                  file={documents[document.key]}
+                  onChange={(file) => updateDocument(document.key, file)}
+                  required={document.required}
+                />
               ))}
             </div>
 
@@ -490,7 +614,40 @@ function emptyToNull(value) {
   return value === '' ? null : value
 }
 
-function buildPayload(inicio, form) {
+function getDocumentRequirements(modalidad) {
+  const modalityId = Number(modalidad?.id)
+  if (modalityDocumentRequirements[modalityId]) {
+    return modalityDocumentRequirements[modalityId]
+  }
+
+  const name = normalizeText(modalidad?.nombre)
+  if (name.includes('VICTIMAS DE TERRORISMO')) return modalityDocumentRequirements[3]
+  if (name.includes('TITULADOS') || name.includes('GRADUADOS')) return modalityDocumentRequirements[4]
+  if (name.includes('DISCAPACIDAD')) return modalityDocumentRequirements[5]
+  if (name.includes('DEPORTISTAS')) return modalityDocumentRequirements[6]
+  if (name.includes('1ER') || name.includes('2DO') || name.includes('PUESTO')) return modalityDocumentRequirements[7]
+
+  return modalityDocumentRequirements[1]
+}
+
+function normalizeText(value) {
+  return (value ?? '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .toUpperCase()
+}
+
+function pickRequirementFiles(documents, requirements) {
+  return Object.fromEntries(
+    requirements
+      .map((document) => [document.key, documents[document.key]])
+      .filter(([, file]) => Boolean(file)),
+  )
+}
+
+function buildPayload(inicio, form, documentRequirements) {
   return {
     ...form,
     tipoDocumento: inicio.tipoDocumento,
@@ -507,10 +664,10 @@ function buildPayload(inicio, form) {
     areaAcademicaId: numberOrNull(form.areaAcademicaId),
     escuelaProfesionalId: numberOrNull(form.escuelaProfesionalId),
     programaAcademicoId: numberOrNull(form.programaAcademicoId),
-    documentos: DOCUMENT_REQUIREMENTS.map(([key, label, required]) => ({
-      clave: key,
-      tipoDocumento: label,
-      obligatorio: required,
+    documentos: documentRequirements.map((document) => ({
+      clave: document.key,
+      tipoDocumento: document.label,
+      obligatorio: document.required,
     })),
   }
 }
