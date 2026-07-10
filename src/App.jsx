@@ -3,6 +3,7 @@ import {
   ArrowRight,
   ClipboardCheck,
   CreditCard,
+  FileSearch,
   FileText,
   IdCard,
   LogIn,
@@ -19,6 +20,7 @@ import { AdminUsersPage } from './pages/admin/AdminUsersPage'
 import { AdminAcademicPage } from './pages/admin/AdminAcademicPage'
 import { RegistrationStartPage } from './pages/registration/RegistrationStartPage'
 import { ApplicationFormPlaceholderPage } from './pages/registration/ApplicationFormPlaceholderPage'
+import { ApplicationConsultPage } from './pages/registration/ApplicationConsultPage'
 import heroImage from './assets/hero.png'
 
 function App() {
@@ -27,6 +29,7 @@ function App() {
       <Route path="/" element={<HomePage />} />
       <Route path="/inscripcion" element={<RegistrationStartPage />} />
       <Route path="/inscripcion/ficha" element={<ApplicationFormPlaceholderPage />} />
+      <Route path="/inscripcion/consulta" element={<ApplicationConsultPage />} />
       <Route path="/admin/login" element={<AdminLoginPage />} />
       <Route path="/admin" element={<ProtectedAdmin><AdminDashboardPage /></ProtectedAdmin>} />
       <Route path="/admin/pagos" element={<ProtectedAdmin><AdminPaymentsPage /></ProtectedAdmin>} />
@@ -195,28 +198,54 @@ function HomePage() {
       </section>
 
       <section className="bg-slate-50">
-        <div className="mx-auto flex w-full max-w-6xl flex-col gap-4 px-5 py-10 text-left md:flex-row md:items-center md:justify-between">
-          <div className="flex items-start gap-4">
-            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-md bg-slate-900 text-white">
-              <ClipboardCheck size={22} aria-hidden="true" />
+        <div className="mx-auto grid w-full max-w-6xl gap-5 px-5 py-10 text-left lg:grid-cols-2">
+          <article className="flex flex-col justify-between gap-5 rounded-md border border-slate-200 bg-white p-5 shadow-sm">
+            <div className="flex items-start gap-4">
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-md bg-red-700 text-white">
+                <FileSearch size={22} aria-hidden="true" />
+              </div>
+              <div>
+                <h2 className="text-xl font-bold text-slate-950">
+                  Consulta tu inscripcion
+                </h2>
+                <p className="mt-1 text-sm leading-6 text-slate-600">
+                  Revisa el estado de tu registro, confirma tus datos principales
+                  y descarga nuevamente tu carne digital.
+                </p>
+              </div>
             </div>
-            <div>
-              <h2 className="text-xl font-bold text-slate-950">
-                Gestion administrativa del proceso
-              </h2>
-              <p className="mt-1 max-w-2xl text-sm leading-6 text-slate-600">
-                Los administradores y coordinadores pueden revisar postulantes,
-                pagos, procesos academicos y reportes de inscripcion desde su panel.
-              </p>
+            <Link
+              to="/inscripcion/consulta"
+              className="inline-flex w-fit items-center gap-2 rounded-md bg-red-700 px-5 py-3 text-sm font-semibold text-white transition hover:bg-red-800"
+            >
+              Consultar inscripcion
+              <ArrowRight size={16} aria-hidden="true" />
+            </Link>
+          </article>
+
+          <article className="flex flex-col justify-between gap-5 rounded-md border border-slate-200 bg-white p-5 shadow-sm">
+            <div className="flex items-start gap-4">
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-md bg-slate-900 text-white">
+                <ClipboardCheck size={22} aria-hidden="true" />
+              </div>
+              <div>
+                <h2 className="text-xl font-bold text-slate-950">
+                  Gestion administrativa del proceso
+                </h2>
+                <p className="mt-1 text-sm leading-6 text-slate-600">
+                  Los administradores y coordinadores pueden revisar postulantes,
+                  pagos, procesos academicos y reportes de inscripcion desde su panel.
+                </p>
+              </div>
             </div>
-          </div>
-          <Link
-            to="/admin/login"
-            className="inline-flex w-fit items-center gap-2 rounded-md bg-slate-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800"
-          >
-            Entrar al panel
-            <ArrowRight size={16} aria-hidden="true" />
-          </Link>
+            <Link
+              to="/admin/login"
+              className="inline-flex w-fit items-center gap-2 rounded-md bg-slate-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800"
+            >
+              Entrar al panel
+              <ArrowRight size={16} aria-hidden="true" />
+            </Link>
+          </article>
         </div>
       </section>
     </main>

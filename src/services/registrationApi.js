@@ -5,6 +5,11 @@ export async function getRegistrationCatalogs() {
   return response.data
 }
 
+export async function getApplicationConsultCatalogs() {
+  const response = await api.get('/public/inscripcion/catalogos-consulta')
+  return response.data
+}
+
 export async function verifyDocumentAvailability(payload) {
   const response = await api.post('/public/inscripcion/verificar-documento', payload)
   return response.data
@@ -12,6 +17,11 @@ export async function verifyDocumentAvailability(payload) {
 
 export async function validateRegistrationPayment(payload) {
   const response = await api.post('/public/inscripcion/validar-pago', payload)
+  return response.data
+}
+
+export async function consultApplication(payload) {
+  const response = await api.post('/public/inscripcion/consultar', payload)
   return response.data
 }
 
