@@ -17,6 +17,16 @@ export async function getApplicantDetail(id) {
   return response.data
 }
 
+export async function approveApplicant(id) {
+  const response = await api.patch(`/admin/postulantes/${id}/aprobar`)
+  return response.data
+}
+
+export async function annulApplicant(id, motivo) {
+  const response = await api.patch(`/admin/postulantes/${id}/anular`, { motivo })
+  return response.data
+}
+
 export async function getAdminFileBlob(path) {
   const response = await api.get(path, {
     responseType: 'blob',

@@ -2,9 +2,15 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { format } from 'date-fns'
 import Swal from 'sweetalert2'
-import { Download, Eye, Search, UsersRound } from 'lucide-react'
+import { Ban, CheckCircle2, Download, Eye, Search, UsersRound } from 'lucide-react'
 import { AdminLayout } from '../../components/admin/AdminLayout'
-import { buildFileUrl, getApplicants, getApplicantsSummary } from '../../services/applicantsApi'
+import {
+  annulApplicant,
+  approveApplicant,
+  buildFileUrl,
+  getApplicants,
+  getApplicantsSummary,
+} from '../../services/applicantsApi'
 
 function formatDate(value) {
   if (!value) return '-'
@@ -21,6 +27,10 @@ function formatMoney(value) {
     style: 'currency',
     currency: 'PEN',
   })
+}
+
+function statusLabel(value) {
+  return value ? value.replaceAll('_', ' ') : '-'
 }
 
 export function AdminApplicantsPage() {
@@ -80,6 +90,85 @@ export function AdminApplicantsPage() {
     loadData(search)
   }
 
+  const handleApprove = async (applicant) => {
+    const confirmation = await Swal.fire({
+      icon: 'question',
+      title: 'Aprobar inscripcion',
+      text: `Se marcara como aprobada la inscripcion de ${applicant.nombresCompletos}.`,
+      showCancelButton: true,
+      confirmButtonText: 'Si, aprobar',
+      cancelButtonText: 'Cancelar',
+      confirmButtonColor: '#b91c1c',
+    })
+
+    if (!confirmation.isConfirmed) return
+
+    try {
+      await approveApplicant(applicant.id)
+      await Swal.fire({
+        icon: 'success',
+        title: 'Inscripcion aprobada',
+        text: 'El postulante ya figura como valido para rendir el examen.',
+        confirmButtonColor: '#b91c1c',
+      })
+      loadData(search)
+    } catch (error) {
+      Swal.fire({
+        icon: 'error',
+        title: 'No se pudo aprobar',
+        text: error.response?.data?.message ?? 'Intentalo nuevamente en unos segundos.',
+      })
+    }
+  }
+
+  const handleAnnul = async (applicant) => {
+    const warningText =
+      applicant.estado === 'APROBADA'
+        ? 'Esta inscripcion ya estaba aprobada. Si la anulas, el pago quedara disponible para que el postulante pueda reinscribirse usando el mismo numero de movimiento.'
+        : 'Al anularla, el pago quedara disponible para que el postulante pueda reinscribirse usando el mismo numero de movimiento.'
+
+    const confirmation = await Swal.fire({
+      icon: 'warning',
+      title: 'Anular inscripcion',
+      text: warningText,
+      input: 'textarea',
+      inputLabel: 'Motivo de anulacion',
+      inputPlaceholder: 'Describe claramente el motivo para que el postulante pueda corregirlo.',
+      inputAttributes: {
+        'aria-label': 'Motivo de anulacion',
+      },
+      showCancelButton: true,
+      confirmButtonText: 'Anular inscripcion',
+      cancelButtonText: 'Cancelar',
+      confirmButtonColor: '#b91c1c',
+      inputValidator: (value) => {
+        if (!value || !value.trim()) {
+          return 'Debes ingresar el motivo de anulacion.'
+        }
+        return undefined
+      },
+    })
+
+    if (!confirmation.isConfirmed) return
+
+    try {
+      await annulApplicant(applicant.id, confirmation.value.trim())
+      await Swal.fire({
+        icon: 'success',
+        title: 'Inscripcion anulada',
+        text: 'El motivo fue guardado y el pago quedo disponible para una nueva inscripcion.',
+        confirmButtonColor: '#b91c1c',
+      })
+      loadData(search)
+    } catch (error) {
+      Swal.fire({
+        icon: 'error',
+        title: 'No se pudo anular',
+        text: error.response?.data?.message ?? 'Intentalo nuevamente en unos segundos.',
+      })
+    }
+  }
+
   return (
     <AdminLayout
       title="Postulantes inscritos"
@@ -120,6 +209,7 @@ export function AdminApplicantsPage() {
                   <th className="px-5 py-3 font-bold">Proceso</th>
                   <th className="px-5 py-3 font-bold">Carrera</th>
                   <th className="px-5 py-3 font-bold">Pago</th>
+                  <th className="px-5 py-3 font-bold">Estado</th>
                   <th className="px-5 py-3 font-bold">Fecha</th>
                   <th className="px-5 py-3 font-bold">Opciones</th>
                 </tr>
@@ -127,13 +217,13 @@ export function AdminApplicantsPage() {
               <tbody className="divide-y divide-slate-100">
                 {loading ? (
                   <tr>
-                    <td className="px-5 py-8 text-center text-slate-500" colSpan="7">
+                    <td className="px-5 py-8 text-center text-slate-500" colSpan="8">
                       Cargando postulantes...
                     </td>
                   </tr>
                 ) : applicants.length === 0 ? (
                   <tr>
-                    <td className="px-5 py-8 text-center text-slate-500" colSpan="7">
+                    <td className="px-5 py-8 text-center text-slate-500" colSpan="8">
                       Todavia no hay postulantes registrados.
                     </td>
                   </tr>
@@ -159,6 +249,9 @@ export function AdminApplicantsPage() {
                         <p className="font-semibold text-slate-800">{applicant.nroMovimiento}</p>
                         <p className="mt-1 text-xs text-slate-500">{formatMoney(applicant.importePagado)}</p>
                       </td>
+                      <td className="px-5 py-4">
+                        <StatusBadge status={applicant.estado} />
+                      </td>
                       <td className="px-5 py-4 text-slate-600">{formatDate(applicant.fechaRegistro)}</td>
                       <td className="px-5 py-4">
                         <div className="flex items-center gap-2">
@@ -176,6 +269,26 @@ export function AdminApplicantsPage() {
                           >
                             <Download size={17} aria-hidden="true" />
                           </a>
+                          {applicant.estado === 'REGISTRADA' && (
+                            <button
+                              type="button"
+                              onClick={() => handleApprove(applicant)}
+                              className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-emerald-200 text-emerald-700 transition hover:border-emerald-600 hover:bg-emerald-50"
+                              title="Aprobar inscripcion"
+                            >
+                              <CheckCircle2 size={17} aria-hidden="true" />
+                            </button>
+                          )}
+                          {applicant.estado !== 'ANULADA' && (
+                            <button
+                              type="button"
+                              onClick={() => handleAnnul(applicant)}
+                              className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-red-200 text-red-700 transition hover:border-red-700 hover:bg-red-50"
+                              title="Anular inscripcion"
+                            >
+                              <Ban size={17} aria-hidden="true" />
+                            </button>
+                          )}
                         </div>
                       </td>
                     </tr>
@@ -190,16 +303,36 @@ export function AdminApplicantsPage() {
   )
 }
 
+function StatusBadge({ status }) {
+  const styles = {
+    REGISTRADA: 'bg-amber-50 text-amber-700 ring-amber-200',
+    APROBADA: 'bg-emerald-50 text-emerald-700 ring-emerald-200',
+    ANULADA: 'bg-red-50 text-red-700 ring-red-200',
+    BORRADOR: 'bg-slate-50 text-slate-700 ring-slate-200',
+  }
+
+  return (
+    <span
+      className={`inline-flex rounded-full px-3 py-1 text-xs font-bold ring-1 ${
+        styles[status] ?? styles.BORRADOR
+      }`}
+    >
+      {statusLabel(status)}
+    </span>
+  )
+}
+
 function SummaryCards({ summary }) {
   const items = [
     ['Total', summary?.total ?? 0],
     ['Registradas', summary?.registradas ?? 0],
+    ['Aprobadas', summary?.aprobadas ?? 0],
     ['Anuladas', summary?.anuladas ?? 0],
     ['Hoy', summary?.registradasHoy ?? 0],
   ]
 
   return (
-    <section className="grid gap-4 md:grid-cols-4">
+    <section className="grid gap-4 md:grid-cols-5">
       {items.map(([label, value]) => (
         <div key={label} className="rounded-md border border-slate-200 bg-white p-5 shadow-sm">
           <div className="flex items-center justify-between gap-3">

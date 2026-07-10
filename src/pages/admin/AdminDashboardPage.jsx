@@ -81,11 +81,14 @@ export function AdminDashboardPage() {
     }
   }, [])
 
+  const activeApplicants =
+    (summary.applicants?.registradas ?? 0) + (summary.applicants?.aprobadas ?? 0)
+
   const cards = [
     {
-      label: 'Postulantes inscritos',
-      value: summary.applicants?.registradas ?? 0,
-      detail: `${summary.applicants?.registradasHoy ?? 0} registrados hoy`,
+      label: 'Inscripciones activas',
+      value: activeApplicants,
+      detail: `${summary.applicants?.registradas ?? 0} pendientes, ${summary.applicants?.aprobadas ?? 0} aprobadas`,
       icon: UsersRound,
       tone: 'bg-red-700 text-white',
     },

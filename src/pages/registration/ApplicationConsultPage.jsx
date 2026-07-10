@@ -1,7 +1,17 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import Swal from 'sweetalert2'
-import { ArrowLeft, Download, FileSearch, IdCard, Search, UserRoundCheck } from 'lucide-react'
+import {
+  AlertCircle,
+  ArrowLeft,
+  CheckCircle2,
+  Clock3,
+  Download,
+  FileSearch,
+  IdCard,
+  Search,
+  UserRoundCheck,
+} from 'lucide-react'
 import { PublicHeader } from '../../components/public/PublicHeader'
 import { FormField } from '../../components/form/FormField'
 import { inputClass } from '../../utils/styles'
@@ -35,6 +45,37 @@ function formatDate(value) {
 function formatValue(value) {
   if (value === null || value === undefined || value === '') return '-'
   return String(value).replaceAll('_', ' ')
+}
+
+function getStatusNotice(status) {
+  if (status === 'APROBADA') {
+    return {
+      icon: CheckCircle2,
+      title: 'Inscripcion aprobada',
+      message: 'Tu inscripcion fue aprobada correctamente y se encuentra valida para rendir el examen de admision.',
+      className: 'border-emerald-200 bg-emerald-50 text-emerald-900',
+      iconClassName: 'text-emerald-700',
+    }
+  }
+
+  if (status === 'ANULADA') {
+    return {
+      icon: AlertCircle,
+      title: 'Inscripcion anulada',
+      message:
+        'Tu inscripcion fue anulada. Revisa la observacion para conocer el motivo. Puedes volver a inscribirte corrigiendo ese detalle y usar el mismo numero de movimiento, sin realizar un nuevo pago al banco.',
+      className: 'border-red-200 bg-red-50 text-red-900',
+      iconClassName: 'text-red-700',
+    }
+  }
+
+  return {
+    icon: Clock3,
+    title: 'Inscripcion pendiente de aprobacion',
+    message: 'Tu inscripcion fue registrada y aun se encuentra pendiente de revision por el equipo de admision.',
+    className: 'border-amber-200 bg-amber-50 text-amber-900',
+    iconClassName: 'text-amber-700',
+  }
 }
 
 export function ApplicationConsultPage() {
@@ -250,6 +291,8 @@ function EmptyResult() {
 }
 
 function ApplicationResult({ result, downloading, onDownload }) {
+  const notice = getStatusNotice(result.estado)
+  const NoticeIcon = notice.icon
   const items = [
     ['Codigo de postulante', result.codigoPostulante],
     ['Documento', `${result.tipoDocumento} ${result.numeroDocumento}`],
@@ -294,6 +337,16 @@ function ApplicationResult({ result, downloading, onDownload }) {
           </button>
         </div>
       </header>
+
+      <div className="px-6 pt-6">
+        <div className={`flex items-start gap-3 rounded-md border p-4 ${notice.className}`}>
+          <NoticeIcon className={`mt-0.5 shrink-0 ${notice.iconClassName}`} size={22} aria-hidden="true" />
+          <div>
+            <p className="text-sm font-bold">{notice.title}</p>
+            <p className="mt-1 text-sm leading-6">{notice.message}</p>
+          </div>
+        </div>
+      </div>
 
       <dl className="grid gap-4 p-6 md:grid-cols-2">
         {items.map(([label, value]) => (
