@@ -46,8 +46,10 @@ export async function getAcademicPrograms(escuelaId) {
 
 export async function registerApplication(payload, photo, documents) {
   const formData = new FormData()
+  const normalizedPhoto = await normalizePhotoFile(photo)
+
   formData.append('datos', JSON.stringify(payload))
-  formData.append('foto', photo)
+  formData.append('foto', normalizedPhoto)
 
   Object.entries(documents).forEach(([key, file]) => {
     if (file) {
@@ -64,6 +66,71 @@ export async function registerApplication(payload, photo, documents) {
   })
 
   return response.data
+}
+
+async function normalizePhotoFile(photo) {
+  if (!photo) return photo
+
+  const bitmap = await loadImageBitmap(photo)
+  const canvas = document.createElement('canvas')
+  canvas.width = bitmap.width
+  canvas.height = bitmap.height
+
+  const context = canvas.getContext('2d')
+  context.fillStyle = '#ffffff'
+  context.fillRect(0, 0, canvas.width, canvas.height)
+  context.drawImage(bitmap, 0, 0)
+
+  if (typeof bitmap.close === 'function') {
+    bitmap.close()
+  }
+
+  const blob = await new Promise((resolve, reject) => {
+    canvas.toBlob(
+      (result) => {
+        if (result) {
+          resolve(result)
+        } else {
+          reject(new Error('No se pudo procesar la fotografia.'))
+        }
+      },
+      'image/jpeg',
+      0.92,
+    )
+  })
+
+  return new File([blob], photo.name.replace(/\.[^.]+$/, '') + '.jpg', {
+    type: 'image/jpeg',
+    lastModified: Date.now(),
+  })
+}
+
+async function loadImageBitmap(file) {
+  if ('createImageBitmap' in window) {
+    return createImageBitmap(file)
+  }
+
+  return new Promise((resolve, reject) => {
+    const image = new window.Image()
+    const objectUrl = window.URL.createObjectURL(file)
+
+    image.onload = () => {
+      const canvas = document.createElement('canvas')
+      canvas.width = image.naturalWidth
+      canvas.height = image.naturalHeight
+      const context = canvas.getContext('2d')
+      context.drawImage(image, 0, 0)
+      window.URL.revokeObjectURL(objectUrl)
+      resolve(canvas)
+    }
+
+    image.onerror = () => {
+      window.URL.revokeObjectURL(objectUrl)
+      reject(new Error('La fotografia no tiene un formato valido.'))
+    }
+
+    image.src = objectUrl
+  })
 }
 
 export async function downloadApplicantCard(downloadUrl, filename) {
