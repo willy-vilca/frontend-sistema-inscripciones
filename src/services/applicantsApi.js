@@ -5,9 +5,17 @@ export async function getApplicantsSummary() {
   return response.data
 }
 
-export async function getApplicants(search = '') {
+export async function getApplicants(options = '') {
+  const params = typeof options === 'string'
+    ? { buscar: options || undefined }
+    : {
+        buscar: options.buscar || undefined,
+        estado: options.estado || 'TODOS',
+        bloque: options.bloque ?? 0,
+      }
+
   const response = await api.get('/admin/postulantes', {
-    params: search ? { buscar: search } : {},
+    params,
   })
   return response.data
 }
