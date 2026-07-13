@@ -5,8 +5,14 @@ export async function getPaymentsSummary() {
   return response.data
 }
 
-export async function getLatestPayments() {
-  const response = await api.get('/admin/pagos')
+export async function getLatestPayments({ busqueda = '', estado = 'TODOS', bloque = 0 } = {}) {
+  const response = await api.get('/admin/pagos', {
+    params: {
+      busqueda: busqueda || undefined,
+      estado,
+      bloque,
+    },
+  })
   return response.data
 }
 

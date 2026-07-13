@@ -10,23 +10,43 @@ import {
   importPaymentsFile,
 } from '../../services/paymentsApi'
 
+const DEFAULT_FILTERS = {
+  busqueda: '',
+  estado: 'TODOS',
+}
+
+const ROWS_PER_PAGE = 5
+const BLOCK_SIZE = 100
+
 export function AdminPaymentsPage() {
   const [summary, setSummary] = useState(null)
   const [payments, setPayments] = useState([])
+  const [searchTerm, setSearchTerm] = useState('')
+  const [filters, setFilters] = useState(DEFAULT_FILTERS)
+  const [block, setBlock] = useState(0)
+  const [page, setPage] = useState(0)
   const [loading, setLoading] = useState(true)
   const [uploading, setUploading] = useState(false)
 
-  const refreshPayments = async ({ showLoading = false } = {}) => {
+  const refreshPayments = async ({
+    showLoading = false,
+    nextFilters = filters,
+    nextBlock = 0,
+    nextPage = 0,
+  } = {}) => {
     if (showLoading) {
       setLoading(true)
     }
     try {
       const [summaryData, paymentsData] = await Promise.all([
         getPaymentsSummary(),
-        getLatestPayments(),
+        getLatestPayments({ ...nextFilters, bloque: nextBlock }),
       ])
       setSummary(summaryData)
       setPayments(paymentsData)
+      setFilters(nextFilters)
+      setBlock(nextBlock)
+      setPage(nextPage)
     } catch {
       Swal.fire({
         icon: 'error',
@@ -41,7 +61,7 @@ export function AdminPaymentsPage() {
   useEffect(() => {
     let active = true
 
-    Promise.all([getPaymentsSummary(), getLatestPayments()])
+    Promise.all([getPaymentsSummary(), getLatestPayments(DEFAULT_FILTERS)])
       .then(([summaryData, paymentsData]) => {
         if (!active) return
         setSummary(summaryData)
@@ -101,6 +121,87 @@ export function AdminPaymentsPage() {
     }
   }
 
+  const totalPages = Math.max(1, Math.ceil(payments.length / ROWS_PER_PAGE))
+  const visiblePayments = payments.slice(page * ROWS_PER_PAGE, page * ROWS_PER_PAGE + ROWS_PER_PAGE)
+  const hasNextBlock = payments.length === BLOCK_SIZE
+  const canGoPrevious = page > 0 || block > 0
+  const canGoNext = page < totalPages - 1 || hasNextBlock
+
+  const handleSearch = (event) => {
+    event.preventDefault()
+    const nextFilters = {
+      ...filters,
+      busqueda: searchTerm.trim(),
+    }
+    refreshPayments({ showLoading: true, nextFilters, nextBlock: 0, nextPage: 0 })
+  }
+
+  const handleStatusChange = (event) => {
+    const nextFilters = {
+      busqueda: searchTerm.trim(),
+      estado: event.target.value,
+    }
+    refreshPayments({ showLoading: true, nextFilters, nextBlock: 0, nextPage: 0 })
+  }
+
+  const handleClearFilters = () => {
+    setSearchTerm('')
+    refreshPayments({
+      showLoading: true,
+      nextFilters: DEFAULT_FILTERS,
+      nextBlock: 0,
+      nextPage: 0,
+    })
+  }
+
+  const handleNextPage = () => {
+    if (page < totalPages - 1) {
+      setPage((currentPage) => currentPage + 1)
+      return
+    }
+
+    if (hasNextBlock) {
+      refreshPayments({
+        showLoading: true,
+        nextFilters: filters,
+        nextBlock: block + 1,
+        nextPage: 0,
+      })
+    }
+  }
+
+  const handlePreviousPage = async () => {
+    if (page > 0) {
+      setPage((currentPage) => currentPage - 1)
+      return
+    }
+
+    if (block <= 0) {
+      return
+    }
+
+    setLoading(true)
+    try {
+      const previousBlock = block - 1
+      const [summaryData, paymentsData] = await Promise.all([
+        getPaymentsSummary(),
+        getLatestPayments({ ...filters, bloque: previousBlock }),
+      ])
+      setSummary(summaryData)
+      setPayments(paymentsData)
+      setBlock(previousBlock)
+      setPage(Math.max(0, Math.ceil(paymentsData.length / ROWS_PER_PAGE) - 1))
+    } catch {
+      Swal.fire({
+        icon: 'error',
+        title: 'No se pudo cargar pagos',
+        text: 'Verifica que el backend este iniciado correctamente.',
+      })
+    } finally {
+      setLoading(false)
+    }
+  }
+
   return (
     <AdminLayout
       title="Pagos bancarios"
@@ -109,7 +210,25 @@ export function AdminPaymentsPage() {
       <div className="space-y-6">
         <PaymentSummaryCards summary={summary} />
         <PaymentUploadPanel onUpload={handleUpload} uploading={uploading} />
-        <PaymentsTable payments={payments} loading={loading} />
+        <PaymentsTable
+          payments={visiblePayments}
+          loading={loading}
+          searchTerm={searchTerm}
+          statusFilter={filters.estado}
+          totalLoaded={payments.length}
+          block={block}
+          page={page}
+          totalPages={totalPages}
+          rowsPerPage={ROWS_PER_PAGE}
+          canGoPrevious={canGoPrevious}
+          canGoNext={canGoNext}
+          onSearchTermChange={setSearchTerm}
+          onSearch={handleSearch}
+          onStatusChange={handleStatusChange}
+          onClearFilters={handleClearFilters}
+          onPreviousPage={handlePreviousPage}
+          onNextPage={handleNextPage}
+        />
       </div>
     </AdminLayout>
   )
