@@ -59,6 +59,7 @@ export function AdminAcademicPage() {
   const [modalities, setModalities] = useState([])
   const [stats, setStats] = useState(null)
   const [statsFilters, setStatsFilters] = useState(emptyStatsFilters)
+  const [careerAreaFilter, setCareerAreaFilter] = useState('')
   const [loading, setLoading] = useState(true)
   const [modal, setModal] = useState(null)
   const [saving, setSaving] = useState(false)
@@ -102,6 +103,11 @@ export function AdminAcademicPage() {
     if (!statsFilters.areaId) return careers
     return careers.filter((career) => String(career.areaAcademicaId) === String(statsFilters.areaId))
   }, [careers, statsFilters.areaId])
+
+  const careersByArea = useMemo(() => {
+    if (!careerAreaFilter) return careers
+    return careers.filter((career) => String(career.areaAcademicaId) === String(careerAreaFilter))
+  }, [careers, careerAreaFilter])
 
   const reloadAll = async () => {
     const [processData, areaData, careerData, statsData] = await Promise.all([
@@ -269,7 +275,14 @@ export function AdminAcademicPage() {
               <AreasTab areas={areas} onCreate={() => openCreate('area')} onEdit={(item) => openEdit('area', item)} />
             ) : null}
             {activeTab === 'carreras' ? (
-              <CareersTab careers={careers} onCreate={() => openCreate('carrera')} onEdit={(item) => openEdit('carrera', item)} />
+              <CareersTab
+                careers={careersByArea}
+                areas={areas}
+                selectedArea={careerAreaFilter}
+                onAreaChange={setCareerAreaFilter}
+                onCreate={() => openCreate('carrera')}
+                onEdit={(item) => openEdit('carrera', item)}
+              />
             ) : null}
             {activeTab === 'estadisticas' ? (
               <StatsTab
@@ -358,7 +371,7 @@ function AreasTab({ areas, onCreate, onEdit }) {
   )
 }
 
-function CareersTab({ careers, onCreate, onEdit }) {
+function CareersTab({ careers, areas, selectedArea, onAreaChange, onCreate, onEdit }) {
   return (
     <CrudSection
       title="Carreras profesionales"
@@ -367,7 +380,25 @@ function CareersTab({ careers, onCreate, onEdit }) {
       icon={GraduationCap}
       onCreate={onCreate}
     >
-      <Table headers={['Carrera', 'Area', 'Inscripciones', 'Estado', 'Opciones']} empty="No hay carreras registradas.">
+      <div className="border-b border-slate-200 px-5 py-4">
+        <label className="block max-w-sm">
+          <span className="text-sm font-semibold text-slate-700">Filtrar por area academica</span>
+          <select
+            value={selectedArea}
+            onChange={(event) => onAreaChange(event.target.value)}
+            className="mt-2 h-11 w-full rounded-md border border-slate-300 bg-white px-3 text-sm text-slate-700 outline-none transition focus:border-red-700 focus:ring-2 focus:ring-red-100"
+          >
+            <option value="">Todas las areas</option>
+            {areas.map((area) => (
+              <option key={area.id} value={area.id}>
+                {area.codigo} - {area.nombre}
+              </option>
+            ))}
+          </select>
+        </label>
+      </div>
+
+      <Table headers={['Carrera', 'Area', 'Inscripciones', 'Estado', 'Opciones']} empty="No hay carreras para el area seleccionada.">
         {careers.map((career) => (
           <tr key={career.id} className="hover:bg-slate-50">
             <td className="px-5 py-4 font-semibold text-slate-950">{career.nombre}</td>
