@@ -9,6 +9,7 @@ import {
   ChevronRight,
   Download,
   Eye,
+  Info,
   Search,
   UsersRound,
   X,
@@ -277,6 +278,15 @@ export function AdminApplicantsPage() {
     }
   }
 
+  const handleShowAnnulReason = (applicant) => {
+    Swal.fire({
+      icon: 'info',
+      title: 'Motivo de anulacion',
+      text: applicant.observaciones || 'No se registro un motivo de anulacion.',
+      confirmButtonColor: '#b91c1c',
+    })
+  }
+
   return (
     <AdminLayout
       title="Postulantes inscritos"
@@ -390,7 +400,19 @@ export function AdminApplicantsPage() {
                         <p className="mt-1 text-xs text-slate-500">{formatMoney(applicant.importePagado)}</p>
                       </td>
                       <td className="px-5 py-4">
-                        <StatusBadge status={applicant.estado} />
+                        <div className="flex items-center gap-2">
+                          <StatusBadge status={applicant.estado} />
+                          {applicant.estado === 'ANULADA' && (
+                            <button
+                              type="button"
+                              onClick={() => handleShowAnnulReason(applicant)}
+                              className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-red-200 text-red-700 transition hover:border-red-700 hover:bg-red-50"
+                              title="Ver motivo de anulacion"
+                            >
+                              <Info size={16} aria-hidden="true" />
+                            </button>
+                          )}
+                        </div>
                       </td>
                       <td className="px-5 py-4 text-slate-600">{formatDate(applicant.fechaRegistro)}</td>
                       <td className="px-5 py-4">
