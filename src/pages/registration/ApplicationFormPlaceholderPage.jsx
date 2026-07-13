@@ -172,7 +172,7 @@ const initialForm = {
   periodoEstudioFin: '',
   presentaDiscapacidad: false,
   discapacidadDetalle: '',
-  preparacionUniversitaria: 'CEPU-UNICA, Academica particular, Autopreparacion y profesor',
+  preparacionUniversitaria: 'Academica Particular',
   medioDifusion: 'INTERNET',
   medioDifusionOtro: '',
   areaAcademicaId: '',

@@ -76,10 +76,21 @@ export function RegistrationStartPage() {
   )
 
   const updateField = (field, value) => {
-    setForm((current) => ({ ...current, [field]: value }))
+    setForm((current) => {
+      const next = { ...current, [field]: value }
+      if (field === 'tipoDocumento' && value === 'PASAPORTE') {
+        next.numeroDocumento = current.numeroDocumento.toUpperCase()
+      }
+      return next
+    })
     if (field === 'modalidadAdmisionId') {
       setPayment(null)
     }
+  }
+
+  const updateDocumentNumber = (value) => {
+    const normalizedValue = form.tipoDocumento === 'PASAPORTE' ? value.toUpperCase() : value
+    updateField('numeroDocumento', normalizedValue)
   }
 
   const checkDocument = async ({ silent = false } = {}) => {
@@ -94,11 +105,23 @@ export function RegistrationStartPage() {
       return false
     }
 
+    const documentFormatError = getDocumentFormatError(form.tipoDocumento, form.numeroDocumento)
+    if (documentFormatError) {
+      if (!silent) {
+        Swal.fire({
+          icon: 'warning',
+          title: 'Formato de documento invalido',
+          text: documentFormatError,
+        })
+      }
+      return false
+    }
+
     setCheckingDocument(true)
     try {
       const response = await verifyDocumentAvailability({
         tipoDocumento: form.tipoDocumento,
-        numeroDocumento: form.numeroDocumento.trim(),
+        numeroDocumento: normalizeDocumentNumber(form.tipoDocumento, form.numeroDocumento),
         procesoAdmisionId: Number(form.procesoAdmisionId),
       })
 
@@ -138,6 +161,16 @@ export function RegistrationStartPage() {
   const handleContinue = async (event) => {
     event.preventDefault()
 
+    const documentFormatError = getDocumentFormatError(form.tipoDocumento, form.numeroDocumento)
+    if (documentFormatError) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Formato de documento invalido',
+        text: documentFormatError,
+      })
+      return
+    }
+
     const documentAvailable = await checkDocument({ silent: true })
     if (!documentAvailable) return
 
@@ -154,6 +187,7 @@ export function RegistrationStartPage() {
       'inicioInscripcion',
       JSON.stringify({
         ...form,
+        numeroDocumento: normalizeDocumentNumber(form.tipoDocumento, form.numeroDocumento),
         procesoAdmision: selectedProceso,
         modalidadAdmision: selectedModalidad,
         pago: payment,
@@ -204,7 +238,7 @@ export function RegistrationStartPage() {
                     <div className="flex gap-2">
                       <input
                         value={form.numeroDocumento}
-                        onChange={(event) => updateField('numeroDocumento', event.target.value)}
+                        onChange={(event) => updateDocumentNumber(event.target.value)}
                         onBlur={() => {
                           if (form.numeroDocumento.trim()) checkDocument({ silent: true })
                         }}
@@ -327,4 +361,27 @@ function formatPaymentLabel(payment) {
     currency: 'PEN',
   })
   return `${monto} - Mov. ${payment.nroMovimiento}`
+}
+
+function normalizeDocumentNumber(tipoDocumento, numeroDocumento) {
+  const value = numeroDocumento.trim()
+  return tipoDocumento === 'PASAPORTE' ? value.toUpperCase() : value
+}
+
+function getDocumentFormatError(tipoDocumento, numeroDocumento) {
+  const value = normalizeDocumentNumber(tipoDocumento, numeroDocumento)
+
+  if (tipoDocumento === 'DNI' && !/^\d{8}$/.test(value)) {
+    return 'El DNI debe tener exactamente 8 digitos.'
+  }
+
+  if (tipoDocumento === 'CARNET_EXTRANJERIA' && !/^\d{12}$/.test(value)) {
+    return 'El carnet de extranjeria debe tener exactamente 12 digitos.'
+  }
+
+  if (tipoDocumento === 'PASAPORTE' && !/^[A-Z]{3}\d{6}$/.test(value)) {
+    return 'El pasaporte debe tener 3 letras seguidas de 6 digitos. Ejemplo: ABC123456.'
+  }
+
+  return null
 }

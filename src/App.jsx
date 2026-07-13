@@ -67,24 +67,24 @@ function HomePage() {
 
   return (
     <main className="min-h-screen bg-slate-50 text-slate-900">
-      <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/95 backdrop-blur">
+      <header className="sticky top-0 z-30 border-b border-white/10 bg-slate-950/95 text-white shadow-lg shadow-slate-950/20 backdrop-blur">
         <div className="mx-auto flex w-full max-w-6xl items-center justify-between px-5 py-4">
           <div className="flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-md bg-red-700 text-white">
+            <div className="flex h-11 w-11 items-center justify-center rounded-md bg-red-700 text-white shadow-sm shadow-red-950/40">
               <ShieldCheck size={24} aria-hidden="true" />
             </div>
             <div className="text-left">
-              <p className="text-xs font-semibold uppercase tracking-wide text-red-700">
+              <p className="text-xs font-semibold uppercase tracking-wide text-red-200">
                 Admision universitaria
               </p>
-              <h1 className="text-lg font-bold text-slate-950">
+              <h1 className="text-lg font-bold text-white">
                 Sistema de Inscripciones
               </h1>
             </div>
           </div>
           <Link
             to="/admin/login"
-            className="inline-flex items-center gap-2 rounded-md border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-red-700 hover:text-red-700"
+            className="inline-flex items-center gap-2 rounded-md border border-white/20 bg-white/5 px-4 py-2 text-sm font-semibold text-white transition hover:border-white/45 hover:bg-white/10"
           >
             <LogIn size={17} aria-hidden="true" />
             Administrador
