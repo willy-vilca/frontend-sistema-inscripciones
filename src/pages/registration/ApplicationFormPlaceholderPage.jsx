@@ -187,7 +187,7 @@ export function ApplicationFormPlaceholderPage() {
     const raw = sessionStorage.getItem('inicioInscripcion')
     return raw ? JSON.parse(raw) : null
   })
-  const [form, setForm] = useState(initialForm)
+  const [form, setForm] = useState(() => buildInitialForm(inicio))
   const [photo, setPhoto] = useState(null)
   const [documents, setDocuments] = useState({})
   const [areas, setAreas] = useState([])
@@ -199,6 +199,7 @@ export function ApplicationFormPlaceholderPage() {
     () => getDocumentRequirements(inicio?.modalidadAdmision),
     [inicio?.modalidadAdmision],
   )
+  const reniecIdentityLocked = inicio?.tipoDocumento === 'DNI' && Boolean(inicio?.reniec)
 
   useEffect(() => {
     if (!inicio) {
@@ -269,6 +270,18 @@ export function ApplicationFormPlaceholderPage() {
 
   const updateDocument = (key, file) => {
     setDocuments((current) => ({ ...current, [key]: file }))
+  }
+
+  const showReniecIdentityMessage = () => {
+    if (!reniecIdentityLocked) return
+
+    Swal.fire({
+      icon: 'info',
+      title: 'Datos obtenidos de RENIEC',
+      text: 'Tus nombres y apellidos se obtuvieron automaticamente con tu DNI, por eso no es necesario modificarlos.',
+      timer: 2800,
+      showConfirmButton: false,
+    })
   }
 
   const handleBirthDate = (value) => {
@@ -388,9 +401,9 @@ export function ApplicationFormPlaceholderPage() {
 
           <FormSection title="Datos Personales">
             <div className="grid gap-5 md:grid-cols-3">
-              <TextInput label="Nombres" field="nombres" form={form} updateField={updateField} required />
-              <TextInput label="Apellido Paterno" field="apellidoPaterno" form={form} updateField={updateField} required />
-              <TextInput label="Apellido Materno" field="apellidoMaterno" form={form} updateField={updateField} />
+              <TextInput label="Nombres" field="nombres" form={form} updateField={updateField} required readOnly={reniecIdentityLocked} onReadOnlyFocus={showReniecIdentityMessage} />
+              <TextInput label="Apellido Paterno" field="apellidoPaterno" form={form} updateField={updateField} required readOnly={reniecIdentityLocked} onReadOnlyFocus={showReniecIdentityMessage} />
+              <TextInput label="Apellido Materno" field="apellidoMaterno" form={form} updateField={updateField} readOnly={reniecIdentityLocked} onReadOnlyFocus={showReniecIdentityMessage} />
               <ReadonlyInput label="Tipo de documento" value={inicio.tipoDocumento} />
               <ReadonlyInput label="Nro. documento" value={inicio.numeroDocumento} />
               <FormField label="Sexo" required>
@@ -589,10 +602,22 @@ export function ApplicationFormPlaceholderPage() {
   )
 }
 
-function TextInput({ label, field, form, updateField, type = 'text', required, disabled }) {
+function TextInput({ label, field, form, updateField, type = 'text', required, disabled, readOnly, onReadOnlyFocus }) {
+  const locked = disabled || readOnly
+
   return (
     <FormField label={label} required={required}>
-      <input type={type} className={inputClass(disabled ? 'bg-slate-100' : '')} value={form[field]} onChange={(e) => updateField(field, e.target.value)} disabled={disabled} />
+      <input
+        type={type}
+        className={inputClass(locked ? 'bg-slate-100 cursor-not-allowed' : '')}
+        value={form[field]}
+        onChange={(e) => {
+          if (!readOnly) updateField(field, e.target.value)
+        }}
+        onFocus={readOnly ? onReadOnlyFocus : undefined}
+        disabled={disabled}
+        readOnly={readOnly}
+      />
     </FormField>
   )
 }
@@ -612,6 +637,19 @@ function numberOrNull(value) {
 
 function emptyToNull(value) {
   return value === '' ? null : value
+}
+
+function buildInitialForm(inicio) {
+  if (!inicio?.reniec || inicio.tipoDocumento !== 'DNI') {
+    return initialForm
+  }
+
+  return {
+    ...initialForm,
+    nombres: inicio.reniec.firstName ?? '',
+    apellidoPaterno: inicio.reniec.firstLastName ?? '',
+    apellidoMaterno: inicio.reniec.secondLastName ?? '',
+  }
 }
 
 function getDocumentRequirements(modalidad) {

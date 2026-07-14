@@ -15,6 +15,13 @@ export async function verifyDocumentAvailability(payload) {
   return response.data
 }
 
+export async function getReniecDniData(numero) {
+  const response = await api.get('/public/inscripcion/reniec/dni', {
+    params: { numero },
+  })
+  return response.data
+}
+
 export async function validateRegistrationPayment(payload) {
   const response = await api.post('/public/inscripcion/validar-pago', payload)
   return response.data

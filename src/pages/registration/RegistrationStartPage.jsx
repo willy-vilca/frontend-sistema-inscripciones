@@ -7,6 +7,7 @@ import { FormField } from '../../components/form/FormField'
 import { PaymentValidationModal } from '../../components/registration/PaymentValidationModal'
 import {
   getRegistrationCatalogs,
+  getReniecDniData,
   verifyDocumentAvailability,
 } from '../../services/registrationApi'
 import { inputClass } from '../../utils/styles'
@@ -26,6 +27,7 @@ export function RegistrationStartPage() {
   const [payment, setPayment] = useState(null)
   const [loading, setLoading] = useState(true)
   const [checkingDocument, setCheckingDocument] = useState(false)
+  const [consultingReniec, setConsultingReniec] = useState(false)
   const [paymentModalOpen, setPaymentModalOpen] = useState(false)
 
   useEffect(() => {
@@ -183,6 +185,25 @@ export function RegistrationStartPage() {
       return
     }
 
+    let reniec = null
+    if (form.tipoDocumento === 'DNI') {
+      setConsultingReniec(true)
+      try {
+        reniec = await getReniecDniData(normalizeDocumentNumber(form.tipoDocumento, form.numeroDocumento))
+      } catch (error) {
+        Swal.fire({
+          icon: 'warning',
+          title: 'DNI no encontrado en RENIEC',
+          text:
+            error.response?.data?.message ??
+            'El numero de documento DNI no se encuentra registrado en la RENIEC. Asegurate de haberlo escrito correctamente.',
+        })
+        return
+      } finally {
+        setConsultingReniec(false)
+      }
+    }
+
     sessionStorage.setItem(
       'inicioInscripcion',
       JSON.stringify({
@@ -191,6 +212,7 @@ export function RegistrationStartPage() {
         procesoAdmision: selectedProceso,
         modalidadAdmision: selectedModalidad,
         pago: payment,
+        reniec,
       }),
     )
 
@@ -331,10 +353,10 @@ export function RegistrationStartPage() {
           <footer className="flex justify-center border-t border-slate-200 px-6 py-6">
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || checkingDocument || consultingReniec}
               className="inline-flex min-h-12 items-center justify-center gap-2 rounded-md bg-emerald-600 px-6 text-sm font-semibold text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:bg-slate-300"
             >
-              Ir a la ficha
+              {consultingReniec ? 'Consultando RENIEC...' : 'Ir a la ficha'}
               <ArrowRight size={18} aria-hidden="true" />
             </button>
           </footer>
