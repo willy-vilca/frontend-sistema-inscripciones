@@ -35,6 +35,20 @@ export async function annulApplicant(id, motivo) {
   return response.data
 }
 
+export async function uploadApplicantFingerprint(id, file) {
+  const formData = new FormData()
+  formData.append('archivo', file)
+
+  const response = await api.post(`/admin/postulantes/${id}/huella`, formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+    timeout: 180000,
+  })
+
+  return response.data
+}
+
 export async function getAdminFileBlob(path) {
   const response = await api.get(path, {
     responseType: 'blob',

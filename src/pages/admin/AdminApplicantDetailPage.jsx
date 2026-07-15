@@ -1,14 +1,15 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { format } from 'date-fns'
 import Swal from 'sweetalert2'
-import { AlertTriangle, ArrowLeft, Download, IdCard } from 'lucide-react'
+import { AlertTriangle, ArrowLeft, CheckCircle2, Download, Fingerprint, IdCard, Upload } from 'lucide-react'
 import { AdminLayout } from '../../components/admin/AdminLayout'
 import {
   buildFileUrl,
   downloadAdminFile,
   getAdminFileBlob,
   getApplicantDetail,
+  uploadApplicantFingerprint,
 } from '../../services/applicantsApi'
 
 function valueOrDash(value) {
@@ -60,7 +61,9 @@ export function AdminApplicantDetailPage() {
   const { id } = useParams()
   const [detail, setDetail] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [uploadingFingerprint, setUploadingFingerprint] = useState(false)
   const [photoObjectUrl, setPhotoObjectUrl] = useState({ source: null, url: null })
+  const fingerprintInputRef = useRef(null)
 
   useEffect(() => {
     let active = true
@@ -130,6 +133,49 @@ export function AdminApplicantDetailPage() {
     }
   }
 
+  async function handleFingerprintFile(file) {
+    if (!file) return
+
+    const fileName = file.name.toLowerCase()
+    const hasImageExtension =
+      fileName.endsWith('.jpg') ||
+      fileName.endsWith('.jpeg') ||
+      fileName.endsWith('.png') ||
+      fileName.endsWith('.webp')
+
+    if (!file.type?.startsWith('image/') && !hasImageExtension) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Archivo no valido',
+        text: 'Selecciona una imagen de la huella digital.',
+      })
+      return
+    }
+
+    setUploadingFingerprint(true)
+    try {
+      const updatedDetail = await uploadApplicantFingerprint(id, file)
+      setDetail(updatedDetail)
+      await Swal.fire({
+        icon: 'success',
+        title: 'Huella registrada',
+        text: 'La huella digital del postulante fue guardada correctamente.',
+        confirmButtonColor: '#b91c1c',
+      })
+    } catch (error) {
+      Swal.fire({
+        icon: 'error',
+        title: 'No se pudo registrar la huella',
+        text: error.response?.data?.message ?? 'Verifica el archivo seleccionado e intenta nuevamente.',
+      })
+    } finally {
+      setUploadingFingerprint(false)
+      if (fingerprintInputRef.current) {
+        fingerprintInputRef.current.value = ''
+      }
+    }
+  }
+
   const currentPhotoUrl =
     photoObjectUrl.source === detail?.fotoUrl ? photoObjectUrl.url : null
 
@@ -158,6 +204,13 @@ export function AdminApplicantDetailPage() {
         ) : (
           <>
             <HeaderPanel detail={detail} photoObjectUrl={currentPhotoUrl} />
+            <FingerprintPanel
+              detail={detail}
+              uploading={uploadingFingerprint}
+              inputRef={fingerprintInputRef}
+              onFileSelected={handleFingerprintFile}
+              onDownload={handleDocumentDownload}
+            />
 
             {detail.estado === 'ANULADA' && (
               <section className="rounded-md border border-red-200 bg-red-50 p-5 shadow-sm">
@@ -264,6 +317,95 @@ export function AdminApplicantDetailPage() {
         )}
       </div>
     </AdminLayout>
+  )
+}
+
+function FingerprintPanel({ detail, uploading, inputRef, onFileSelected, onDownload }) {
+  const fingerprint = detail.huellaDigital
+
+  if (fingerprint) {
+    return (
+      <section className="rounded-md border border-emerald-200 bg-emerald-50 p-5 shadow-sm">
+        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <div className="flex gap-3">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-md bg-emerald-100 text-emerald-700">
+              <CheckCircle2 size={22} aria-hidden="true" />
+            </div>
+            <div>
+              <h3 className="text-lg font-bold text-emerald-900">Huella digital registrada</h3>
+              <p className="mt-1 text-sm leading-6 text-emerald-800">
+                La huella digital del postulante ya fue registrada para esta inscripcion.
+              </p>
+              <p className="mt-1 text-xs font-semibold text-emerald-700">
+                Archivo: {fingerprint.nombreOriginal}
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => onDownload(fingerprint)}
+            className="inline-flex min-h-11 items-center justify-center gap-2 rounded-md bg-emerald-700 px-5 text-sm font-semibold text-white transition hover:bg-emerald-800"
+          >
+            <Download size={17} aria-hidden="true" />
+            Descargar huella
+          </button>
+        </div>
+      </section>
+    )
+  }
+
+  if (detail.estado === 'ANULADA') {
+    return (
+      <section className="rounded-md border border-slate-200 bg-white p-5 shadow-sm">
+        <div className="flex gap-3">
+          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-md bg-slate-100 text-slate-500">
+            <Fingerprint size={22} aria-hidden="true" />
+          </div>
+          <div>
+            <h3 className="text-lg font-bold text-slate-950">Huella digital</h3>
+            <p className="mt-1 text-sm leading-6 text-slate-600">
+              Esta inscripcion fue anulada, por lo que no requiere registrar huella digital.
+            </p>
+          </div>
+        </div>
+      </section>
+    )
+  }
+
+  return (
+    <section className="rounded-md border border-amber-200 bg-amber-50 p-5 shadow-sm">
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+        <div className="flex gap-3">
+          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-md bg-amber-100 text-amber-700">
+            <Fingerprint size={22} aria-hidden="true" />
+          </div>
+          <div>
+            <h3 className="text-lg font-bold text-amber-900">Registrar huella digital</h3>
+            <p className="mt-1 text-sm leading-6 text-amber-800">
+              Sube una imagen de la huella del postulante antes de aprobar la inscripcion.
+            </p>
+          </div>
+        </div>
+        <div>
+          <input
+            ref={inputRef}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={(event) => onFileSelected(event.target.files?.[0])}
+          />
+          <button
+            type="button"
+            disabled={uploading}
+            onClick={() => inputRef.current?.click()}
+            className="inline-flex min-h-11 items-center justify-center gap-2 rounded-md bg-red-700 px-5 text-sm font-semibold text-white transition hover:bg-red-800 disabled:cursor-not-allowed disabled:bg-slate-300"
+          >
+            <Upload size={17} aria-hidden="true" />
+            {uploading ? 'Guardando...' : 'Subir huella'}
+          </button>
+        </div>
+      </div>
+    </section>
   )
 }
 
