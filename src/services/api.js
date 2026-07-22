@@ -1,7 +1,7 @@
 import axios from 'axios'
 
 export const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL ?? 'http://localhost:8080/api',
+  baseURL: import.meta.env.VITE_API_URL ?? 'https://sistema-inscripcionesbackend-f2bxckepayb0h8h2.brazilsouth-01.azurewebsites.net/api',
   timeout: 60000,
 })
 
